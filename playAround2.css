@@ -9,6 +9,11 @@ html{
 
 .gameSpaces{}
 
+.gamespace_hover{
+	/*important makes property*/
+	background-color: #FF0000 !important; 
+}
+
 .onboardvisFormat {
 	/*Look and Feel of Board Space*/
 	margin: .2rem;

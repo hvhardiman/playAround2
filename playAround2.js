@@ -17,9 +17,30 @@ createwordArray();
 createTilelist();
 createBoardspaces();
 
+var dropOptions = {
+    accept: ".tileNatural",
+    over: function(event, ui){
+        $(this).addClass('gamespace_hover');
+    },
+    out: function(event, ui){
+        $(this).removeClass('gamespace_hover')
+    }, 
+    drop: function(event, ui){
+        //code 
+
+    }
+}
+
 
 $(document).ready(function() {
     
+    // $(".container").on('mouseenter', '.gameSpaces', function(){
+    //     $(this).addClass('gamespace_hover');
+    // });
+
+    // $(".container").on('mouseleave', '.gameSpaces', function(){
+    //     $(this).removeClass('gamespace_hover');
+    // });
     //ready for update and draw here
 
 });//end of .ready
@@ -71,6 +92,8 @@ function createBoardspaces(){
             $(d).addClass("onboardtextFormat");
             $(d).addClass("onboardvisFormat");
             $(d).addClass("gameSpaces");
+
+            //$(d).droppable(dropOptions);
 
             
 
@@ -340,6 +363,21 @@ $(".container").click(function(event) {//Should be mouseup when building the res
 
 });
 
+$(".gameSpaces").droppable({
+
+    accept: ".tileNatural",
+    over: function(event, ui){
+        $(this).addClass('gamespace_hover');
+    },
+    out: function(event, ui){
+        $(this).removeClass('gamespace_hover')
+    }, 
+    drop: function(event, ui){
+        console.log('Dropped the Object');
+        
+    }
+
+});
 // Make images draggable.
 $(".tileNatural").draggable({
 
