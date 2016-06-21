@@ -25,6 +25,7 @@ html{
 }
 
 .onboardtextFormat{
+	text-transform: capitalize;
 	letter-spacing: 2px;
 	text-align: center;
 	line-height: 5rem;
@@ -54,8 +55,7 @@ html{
 
 .tileNatural{
 	background: yellow;
-	text-transform: capitalize;
-	border: 1px solid green;
+	/*border: 1px solid green;*/
 	position: absolute;
 }
 .tilePlayed{
@@ -85,7 +85,7 @@ html{
 	height: 16.2rem;
 	max-width: 65rem ; 
 	position: relative;
-	border: 1px solid orange;
+	/*border: 1px solid orange;*/
 	background: gray;
 	margin-left: 5.5rem;
 }

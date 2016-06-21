@@ -17,23 +17,24 @@ createwordArray();
 createTilelist();
 createBoardspaces();
 
-var dropOptions = {
-    accept: ".tileNatural",
-    over: function(event, ui){
-        $(this).addClass('gamespace_hover');
-    },
-    out: function(event, ui){
-        $(this).removeClass('gamespace_hover')
-    }, 
-    drop: function(event, ui){
-        //code 
-
-    }
-}
+// var dropOptions = {
+//     accept: ".tileNatural",
+//     over: function(event, ui){
+//         $(this).addClass('gamespace_hover');
+//     },
+//     out: function(event, ui){
+//         $(this).removeClass('gamespace_hover')
+//     }, 
+//     drop: function(event, ui){
+//         //code 
+//     }
+// }
+//$(d).droppable(dropOptions); - use this with above dropOptions decleration
 
 
 $(document).ready(function() {
-    
+
+    //GOOD EXAMPLE HERE
     // $(".container").on('mouseenter', '.gameSpaces', function(){
     //     $(this).addClass('gamespace_hover');
     // });
@@ -80,22 +81,17 @@ function createBoardspaces(){
             d = document.createElement('div');
             var space = new Object();
 
-            space.homeX = Math.floor(j*5.4*htmlFontsize);;
-            space.homeY = Math.floor(n*5.4*htmlFontsize);
+            space.homeX = Math.floor(j*tileWidth);;
+            space.homeY = Math.floor(n*tileWidth);
 
             space.letterVal = "";
             space.locked = 0;
 
             $(d).css("left",  space.homeX);
             $(d).css("top",  space.homeY);
-            $(d).addClass("gameSpaces");
             $(d).addClass("onboardtextFormat");
             $(d).addClass("onboardvisFormat");
             $(d).addClass("gameSpaces");
-
-            //$(d).droppable(dropOptions);
-
-            
 
             var ranVal = getRandomArbitrary(0, 100);
 
@@ -150,8 +146,8 @@ var ranVal;
 
             var tile = new Object();
       
-            tile.startingX = Math.floor(j*5.4*htmlFontsize);
-            tile.startingY = Math.floor(n*5.4*htmlFontsize);
+            tile.startingX = Math.floor(j*tileWidth);
+            tile.startingY = Math.floor(n*tileWidth);
             tile.realX = tile.homeX;
             tile.realY = tile.homeY;
             tile.played = 0;
@@ -179,12 +175,11 @@ var ranVal;
             $(d).data( "homeX", tile.startingX );
             $(d).data( "homeY", tile.startingY );
 
-            $(d).css("transform", "scale(1,1)");
+            // $(d).css("transform", "scale(1,1)");
             $(d).text(tile.value);
             $(d).addClass("onboardtextFormat");
             $(d).addClass("onboardvisFormat");
             $(d).addClass("tileNatural");
-            
             $(d).appendTo($(".tileArea"));
   
         }
@@ -366,15 +361,27 @@ $(".container").click(function(event) {//Should be mouseup when building the res
 $(".gameSpaces").droppable({
 
     accept: ".tileNatural",
-    over: function(event, ui){
-        $(this).addClass('gamespace_hover');
-    },
-    out: function(event, ui){
-        $(this).removeClass('gamespace_hover')
-    }, 
+    // over: function(event, ui){
+    //     $(this).addClass('gamespace_hover');
+    // },
+    // out: function(event, ui){
+    //     $(this).removeClass('gamespace_hover')
+    // }, 
+    tolerance: "pointer",
+    hoverClass: "gamespace_hover",
     drop: function(event, ui){
         console.log('Dropped the Object');
-        
+
+        var relX = $(this).offset().left - $(".tileArea").offset().left;
+        var relY = $(this).offset().top - $(".tileArea").offset().top;
+
+        //remove from tile div
+        ui.draggable.css("left", relX -2); 
+        ui.draggable.css("top", relY  -2); 
+
+       	console.log("relX: " + relX);
+        console.log("relY: " + relY);
+        //ui.draggable.css(("zIndex", "1000"));    
     }
 
 });
@@ -382,7 +389,7 @@ $(".gameSpaces").droppable({
 $(".tileNatural").draggable({
 
     // Find original position of dragged image.
-
+    stack: ".tileNatural",
     start: function(event, ui) {
 
         // Show start dragged position of image.
