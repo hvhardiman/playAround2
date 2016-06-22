@@ -157,8 +157,6 @@ var tileId = 1;
             $(d).data("iD", tileId);
             tileId++;
 
-            
-
             $(d).appendTo($(".tileArea"));
   
         }
@@ -373,13 +371,17 @@ $(".gameSpaces").droppable({
         	console.log("No Tile Found");
         	
         	//handle visual aspect of dropped tile
-        	ui.draggable.css("left", relX -2); 
-        	ui.draggable.css("top", relY  -2); 
+        	// ui.draggable.css("left", relX -2); 
+        	// ui.draggable.css("top",  relY  -2); 
 
         	//handle logical aspect of dropped tile
         	$(this).data("storedtileId", ui.draggable.data("iD")); //set the stored tile on gameSpace to id of tile
         	ui.draggable.data("spaceonId", $(this).data("iD")); //set the gamespaceId to of the tile object in question
 
+        	//append 
+        	ui.draggable.css("left",-2); 
+        	ui.draggable.css("top",  -2); 
+        	$(this).append(ui.draggable);
         	
     	}else{
     		console.log("Tile Found");
