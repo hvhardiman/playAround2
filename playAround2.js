@@ -17,32 +17,7 @@ createwordArray();
 createTilelist();
 createBoardspaces();
 
-// var dropOptions = {
-//     accept: ".tileNatural",
-//     over: function(event, ui){
-//         $(this).addClass('gamespace_hover');
-//     },
-//     out: function(event, ui){
-//         $(this).removeClass('gamespace_hover')
-//     }, 
-//     drop: function(event, ui){
-//         //code 
-//     }
-// }
-//$(d).droppable(dropOptions); - use this with above dropOptions decleration
-
-
 $(document).ready(function() {
-
-    //GOOD EXAMPLE HERE
-    // $(".container").on('mouseenter', '.gameSpaces', function(){
-    //     $(this).addClass('gamespace_hover');
-    // });
-
-    // $(".container").on('mouseleave', '.gameSpaces', function(){
-    //     $(this).removeClass('gamespace_hover');
-    // });
-    //ready for update and draw here
 
 });//end of .ready
 
@@ -52,32 +27,14 @@ $(document).ready(function() {
 //Methods
 //Methods
 
-// function drawGamecomponents(){
-
-//  for(var i=0; i < 30; i++){
-//      if(tileList[i].played ==0){//Only display tiles that have not been played here
-//          d = document.createElement('div');
-//          $(d).css("left", tileList[i].homeX);
-//             $(d).css("top", tileList[i].homeY);
-//             $(d).text(tileList[i].value);
-//             $(d).addClass("onboardFormat");
-//             $(d).addClass("boardspace");
-//             $(d).addClass("tileNatural");
-//             $(d).appendTo($(".tileArea"));
-//      }
-//         console.log(tileList[i].value);
-//     }
-
-// }
-
 //create board objects for DOM and memory - initialization
 function createBoardspaces(){
 
     // Create Spaces that go on the board, logical plus styling aspects
+    var spaceId = 1;
     for (var n = 0; n <= 11; n++){
         for (var j = 0; j <= 11; j++){
-            //Draw Main Play Board here
-            //Since One Time Deal, will leave here instead of 'draw' function
+
             d = document.createElement('div');
             var space = new Object();
 
@@ -87,11 +44,20 @@ function createBoardspaces(){
             space.letterVal = "";
             space.locked = 0;
 
+            //visual aspects
             $(d).css("left",  space.homeX);
             $(d).css("top",  space.homeY);
             $(d).addClass("onboardtextFormat");
             $(d).addClass("onboardvisFormat");
+
+            //logical data needed for visual support
             $(d).addClass("gameSpaces");
+            $(d).data("onboard", 0);
+            $(d).data("committed", 0);
+
+            $(d).data("storedtileId", 0); //what space is on me
+            $(d).data("iD", spaceId); //who am i 
+            spaceId++;
 
             var ranVal = getRandomArbitrary(0, 100);
 
@@ -139,7 +105,7 @@ function createBoardspaces(){
 function createTilelist(){
 
 var ranVal; 
-
+var tileId = 1; 
     for (var n = 0; n < 3; n++){
 
         for (var j = 0; j <= 9; j++){
@@ -165,21 +131,34 @@ var ranVal;
 
             d = document.createElement('div');
 
-            $(d).draggable().css("position", "absolute");
+            //visual aspects of tile
 
+            
+            $(d).draggable().css("position", "absolute");  //make tile draggable
+            $(d).addClass("onboardtextFormat");
+            $(d).addClass("onboardvisFormat");
+            $(d).addClass("tileNatural");
             //physically let tile know where it first lives change left and top to change location later
             $(d).css("left", tile.startingX);
             $(d).css("top", tile.startingY);
+            // $(d).css("transform", "scale(1,1)");
+            $(d).text(tile.value);
 
+
+            //logical data needed for visual support
             //Let know where current home is so it can return there
             $(d).data( "homeX", tile.startingX );
             $(d).data( "homeY", tile.startingY );
 
-            // $(d).css("transform", "scale(1,1)");
-            $(d).text(tile.value);
-            $(d).addClass("onboardtextFormat");
-            $(d).addClass("onboardvisFormat");
-            $(d).addClass("tileNatural");
+            //what space am I on
+            $(d).data("spaceonId", 0);
+
+            //what tile am I
+            $(d).data("iD", tileId);
+            tileId++;
+
+            
+
             $(d).appendTo($(".tileArea"));
   
         }
@@ -212,6 +191,15 @@ function getId(type, xVal, yVal){
     console.log("XValue: " + xVal + " YValue: " + yVal);
     alert("Something isn't right");
 }
+
+function removetilefromSpace(testSpace){
+	$(".gameSpaces").each(function( index ){
+		if($(this).data("iD")==testSpace){
+			$(this).data("storedtileId", 0); //what space is on me
+		}  		
+	});
+}
+
 //function that determins if a point (touch or mouseclick) is within a particular square
 function isIntersectingsquare(pntX, pntY, squareX,squareY, width) {
     if ((pntX > squareX)&&(pntX<squareX+width)){
@@ -370,81 +358,70 @@ $(".gameSpaces").droppable({
     tolerance: "pointer",
     hoverClass: "gamespace_hover",
     drop: function(event, ui){
-        console.log('Dropped the Object');
 
+        console.log('Dropped the Object In Droppable Area - Gamespace');
+
+        //get position of space relative to tilearea to avoid doing anything unnecesary 
         var relX = $(this).offset().left - $(".tileArea").offset().left;
         var relY = $(this).offset().top - $(".tileArea").offset().top;
+        //Make tile move to the location of the space: -2 there to account for margin - should fix
 
-        //remove from tile div
-        ui.draggable.css("left", relX -2); 
-        ui.draggable.css("top", relY  -2); 
+        //$(this)
+        //$(d).data("onboard", 0);
+        if($(this).data("storedtileId")==0){
 
-       	console.log("relX: " + relX);
-        console.log("relY: " + relY);
-        //ui.draggable.css(("zIndex", "1000"));    
+        	console.log("No Tile Found");
+        	
+        	//handle visual aspect of dropped tile
+        	ui.draggable.css("left", relX -2); 
+        	ui.draggable.css("top", relY  -2); 
+
+        	//handle logical aspect of dropped tile
+        	$(this).data("storedtileId", ui.draggable.data("iD")); //set the stored tile on gameSpace to id of tile
+        	ui.draggable.data("spaceonId", $(this).data("iD")); //set the gamespaceId to of the tile object in question
+
+        	
+    	}else{
+    		console.log("Tile Found");
+    		ui.draggable.css("left", ui.draggable.data("homeX")); //change to home locationX
+            ui.draggable.css("top", ui.draggable.data("homeY")); //change to home locationY
+    	}
+
+       	//console.log("relX: " + relX);
+        //console.log("relY: " + relY);
+    
     }
 
 });
-// Make images draggable.
+// Make tiles draggable.
 $(".tileNatural").draggable({
 
     // Find original position of dragged image.
     stack: ".tileNatural",
     start: function(event, ui) {
 
-        // Show start dragged position of image.
-        //var Startpos = $(this).offset();
-        //console.log("START: \nLeft: "+ Startpos.left + "\nTop: " + Startpos.top);
-        console.log("Start Mouse: \nLeft: "+ event.pageX + "\nTop: " + event.pageY);
+    	console.log("Start Drag: \nLeft: "+ event.pageX + "\nTop: " + event.pageY);
+
+    	if($(this).data("spaceonId") != 0){
+    		removetilefromSpace($(this).data("spaceonId"));//remove tile from space from a logical perspective
+    		$(this).data("spaceonId", 0);//remove space from tile from a logical perspective 
+    	}
+        
     },
 
-    // Find position where image is dropped.
+    // Find position where image is dropped. Handle drops outsite of board area
     stop: function(event, ui) {
+
         clickedTile = this;
-        // Show dropped position.
-        
+
         var mouseX = event.pageX - $(".container").offset().left;
         var mouseY = event.pageY - $(".container").offset().top; 
 
-        //var Stoppos = $(this).offset();
-        //console.log("STOP: \nLeft: "+ Stoppos.left + "\nTop: " + Stoppos.top);
-        //console.log("End Mouse: \nLeft: "+ event.pageX + "\nTop: " + event.pageY); //event.pageY - mouse y
-        //console.log("Container PosX: " + $(".container").css("left") + " " + "Container Width: " + $(".container").css("width"));
-        //$(".container").css("width") is subbing for 
-        //console.log("relX : " + mouseX + " Y:  " + mouseY + "Left Container: " + parseInt($(".container").css("left")) + " Top Container: " + parseInt($(".container").css("top")) + " Width: " + parseInt($(".container").css("width")));
-        //console.log("boardWidth " + boardWidth)
-
-
         if(isIntersectingsquare(mouseX, mouseY, parseInt($(".container").css("left")),  parseInt($(".container").css("top")) , parseInt($(".container").css("width")))){
             //Tile dropped over the board
-
-            //iterate over .gameSpaces
-            $( ".gameSpaces" ).each(function( index ) {
-                var gameSpace = this; 
-                //console.log(index + ": " + $( this ).text() );
-                if(isIntersectingsquare(mouseX, mouseY, parseInt($(gameSpace).css("left")),  parseInt($(".container").css("top")) , parseInt($(".container").css("width")))){
-
-                }
-                //see which one is in question with isIntersecting(mouseX, mouseY, $(gameSpace).css("left"), top, width )
-                //if in question
-                    //Determine what is happening in this tile
-                        //if nothing 
-                            //place tile by doing....... 
-
-                        //if something determine what and send home 
-
-
-            });
-            
-
-
-            console.log("In Game Board");
-
-
-
-
-        }else{//Tile dropped over location not on board
-            $(clickedTile).css("left", $(clickedTile).data("homeX")); //change to home locationX
+             console.log("In Game Board");
+        }else{//Tile dropped over location not on board - send home
+ 			$(clickedTile).css("left", $(clickedTile).data("homeX")); //change to home locationX
             $(clickedTile).css("top", $(clickedTile).data("homeY")); //change to home locationY
             console.log("NOT - In Game Board");
         }
@@ -453,56 +430,6 @@ $(".tileNatural").draggable({
     }
 });
 
-//Determine which tile has been selected
-// $(".tileNatural").click(function(event) {
-//             // console.log("mouseup on " +  $(d).css("left") + " " + $(d).css("top"));
-    
-//     //console.log("Tile Area Clicked"); 
-//     //console.log("client X: " + event.clientX + " Y:  " + event.clientY);  
-//     // var relX = event.pageX - $(".tileArea").offset().left;
-//     // var relY = event.pageY - $(".tileArea").offset().top;   
-    
-//     //console.log("relX : " + relX + " Y:  " + relY);
-//     console.log("scale value: " + $(this).css("transform")[7]);
-
-//     if($(this).css("transform")[7] == 2){return false;}
-
-//     var activeX = Math.round($(this).position().left); 
-//     var activeY = Math.round($(this).position().top); 
-//     var memId= getId("tile", activeX, activeY);
-
-//    //Handle Formating first so the sizes are right when comparing next input
-//     $( ".tileNatural" ).each(function( index ) {
-//         if((activeX === Math.round($(this).position().left))&&(activeY === Math.round($(this).position().top))){
-//             $(this).css("transform", "scale(2,2)");
-//         }else{
-//             $(this).css("transform", "scale(1,1)");
-//         }
-//     });
-
-//     //Handle Object
-//     for(var i = 0; i < tileList.length; i++){
-//         if(i != memId){
-//            tileList[i].selected = 0;
-//         }else{
-//            tileList[i].selected = 1;
-//         }
-//     }
-
- 
-//         // for(var i = 0; i < tileList.length; i++){
-//         // if(i != memId){
-//         //     $(this).css("transform", "scale(1,1)");
-//         // }else{
-//         //     $(this).css("transform", "scale(2,2)");
-//         // }
-//    // }
-
-
-
-    
-    
-// });
 //End Event Listners
 //End Event Listners
 //End Event Listners
