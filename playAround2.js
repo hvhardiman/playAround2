@@ -248,7 +248,35 @@ function returnPointvalue(letter){
 //Tile Scoring Area - Methods
 function scoreHandler(inplayList){
     console.log(inplayList);
+    console.log(passrowPlay(inplayList));
+    console.log(passcolPlay(inplayList));
     
+}
+
+function passrowPlay(inplayList){
+    for (var w = 0; w < inplayList.length; w++){
+        RowVal = inplayList[0].yVal;
+        if (inplayList[w].yVal != RowVal){
+            console.log("Bad Play Row");
+            return 0;
+            break;
+        }
+        console.log("Passed Test 1 Row " + inplayList[w].letterVal);
+    }
+    return 1;
+}
+
+function passcolPlay(inplayList){
+    for (var w = 0; w < inplayList.length; w++){
+        RowVal = inplayList[0].xVal;
+        if (inplayList[w].xVal != RowVal){
+            console.log("Bad Play Col");
+            return 0;
+            break;
+        }
+        console.log("Passed Test 1 Col " + inplayList[w].letterVal);
+    }
+    return 1;
 }
     
 
