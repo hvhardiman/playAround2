@@ -57,7 +57,20 @@ html{
 	background: yellow;
 	/*border: 1px solid green;*/
 	position: absolute;
+	font-size: 3rem;
+
 }
+
+.tilevalue{
+	font-size: 1.5rem;
+	position: absolute;
+	letter-spacing: 1px;
+	top:3px;
+	right:3px;
+	line-height:1.0rem;
+}
+
+
 .tilePlayed{
 
 }

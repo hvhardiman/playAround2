@@ -11,6 +11,24 @@ var consonants = "bcdfghjklmnpqrstvwxyz";
 var vowels = "aeiou";
 var selectedTileobject;
 
+var points = {a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,
+    l:1,
+    m:4,
+    n:1,
+    o:1,
+    p:3,
+    q:10,
+    r:1,
+    s:1,
+    t:1,
+    u:1,
+    v:4,
+    w:4,
+    x:8,
+    y:4,
+    z:10
+};
+
 //Go ahead and start getting the large file ASAP and setting up objects and DOM
 //need to do this first to make adding even listners less of a headache
 createwordArray();
@@ -53,7 +71,7 @@ function createBoardspaces(){
             //logical data needed for visual support
             $(d).addClass("gameSpaces");
             $(d).data("onboard", 0);
-            $(d).data("committed", 0);
+            $(d).data("locked", 0);
 
             $(d).data("storedtileId", 0); //what space is on me
             $(d).data("iD", spaceId); //who am i 
@@ -145,17 +163,23 @@ var tileId = 1;
             $(d).text(tile.value);
 
 
-            //logical data needed for visual support
+            //logical data needed for visual and other support
             //Let know where current home is so it can return there
             $(d).data( "homeX", tile.startingX );
             $(d).data( "homeY", tile.startingY );
-
+            $(d).data( "locked", 0);
+                
             //what space am I on
             $(d).data("spaceonId", 0);
 
             //what tile am I
             $(d).data("iD", tileId);
             tileId++;
+
+            var s = document.createElement('span');
+            $(s).addClass('tilevalue');
+            $(s).text(returnPointvalue(tile.value));
+            $(d).append($(s));
 
             $(d).appendTo($(".tileArea"));
   
@@ -213,94 +237,24 @@ function getRandomArbitrary(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-//function that returns point value of a tile for scoring and formatting tiles 
+//function that returns point value of a tile for scoring and formatting tiles
 function returnPointvalue(letter){
-
-    if(letter=='a'){
-        return 1;
-    }
-
-    if(letter=='b'){
-        return 3;
-    }
-
-    if(letter=='c'){
-        return 3;
-    }
-
-    if(letter=='d'){
-        return 2;
-    }
-
-    if(letter=='e'){
-        return 1;
-    }
-
-    if(letter=='f'){
-        return 4;
-    }
-
-    if(letter=='g'){
-        return 2;
-    }
-    if(letter=='h'){
-        return 4;
-    }
-    if(letter=='i'){
-        return 1;
-    }
-    if(letter=='j'){
-        return
-    }
-    if(letter=='k'){
-        return 5;
-    }
-    if(letter=='l'){
-        return 1;
-    }
-    if(letter=='m'){
-        return 4;
-    }
-    if(letter=='n'){
-        return 1;
-    }
-    if(letter=='o'){
-        return 1;
-    }
-    if(letter=='p'){
-        return 3;
-    }
-    if(letter=='q'){
-        return 10;
-    }
-    if(letter=='r'){
-        return 1;
-    }
-    if(letter=='s'){
-        return 1;
-    }
-    if(letter=='t'){
-        return 1;
-    }
-    if(letter=='u'){
-       return 1;
-    }
-    if(letter=='v'){
-       return 4;
-    }
-    if(letter=='w'){
-        return 4;
-    }
-    if(letter=='x'){
-        return 8; 
-    }
-    if(letter=='y'){
-        return 4;
-    }
-    if(letter=='z'){
-        return 10;
-    }
+    return points[letter];
 }
+
+
+//Tile Scoring Area - Methods
+//Tile Scoring Area - Methods
+//Tile Scoring Area - Methods
+function scoreHandler(inplayList){
+    console.log(inplayList);
+    
+}
+    
+
+    
+
+
 
 //END Methods
 //END Methods
@@ -371,17 +325,18 @@ $(".gameSpaces").droppable({
         	console.log("No Tile Found");
         	
         	//handle visual aspect of dropped tile
-        	// ui.draggable.css("left", relX -2); 
-        	// ui.draggable.css("top",  relY  -2); 
+        	ui.draggable.css("left", relX -2); 
+        	ui.draggable.css("top",  relY  -2); 
 
         	//handle logical aspect of dropped tile
         	$(this).data("storedtileId", ui.draggable.data("iD")); //set the stored tile on gameSpace to id of tile
         	ui.draggable.data("spaceonId", $(this).data("iD")); //set the gamespaceId to of the tile object in question
+            $(this).data("letterVal", ui.draggable.text());
 
         	//append 
-        	ui.draggable.css("left",-2); 
-        	ui.draggable.css("top",  -2); 
-        	$(this).append(ui.draggable);
+        	// ui.draggable.css("left",-2); 
+        	// ui.draggable.css("top",  -2); 
+        	// $(this).append(ui.draggable);
         	
     	}else{
     		console.log("Tile Found");
@@ -431,6 +386,48 @@ $(".tileNatural").draggable({
 
     }
 });
+
+//Tile Scoring Area - Event Listener button
+//Tile Scoring Area - Event Listener button
+//Tile Scoring Area - Event Listener button
+
+//When the "checkBtn" is clicked create a scoring object (list of played and locked tiles) to be passed to the scoreHandler 
+$( ".checkBtn" ).click(function() {
+    
+    var scoringObject = [];
+    var newtileFound = 0;
+    
+    $(".gameSpaces").each(function( index ){
+        
+        var entry = new Object();
+        
+        if($(this).data("storedtileId")!=0){
+            //location info and letter
+            entry.xVal = $(this).css("left");
+            entry.yVal = $(this).css("top");
+            entry.letterVal = $(this).data("letterVal")[0];
+            
+            //assume locked
+            entry.fresh = 0;
+            
+            if(!$(this).data("locked")){//if tile is fresh to board
+                newtileFound = 1;
+                entry.fresh = 1;
+                entry.bonus = $(this).text();
+            }      
+            scoringObject.push(entry);
+        }
+        
+	});
+    
+    if(newtileFound){
+        scoreHandler(scoringObject);
+    }
+    
+});
+
+
+
 
 //End Event Listners
 //End Event Listners
