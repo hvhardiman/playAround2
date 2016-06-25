@@ -318,6 +318,8 @@ function handleColplay(inplayList){
         testString+=result.letterVal;
     }
     
+    console.log("Testing!! " + testString);
+    
     if(isaWord(testString)){
         console.log("A WORD!!");
         indicateRightandlock();
@@ -367,22 +369,20 @@ function gaptestCol(bottomLocation, inplayList){
 }
 
 function gettopVal(topmostLocation, inplayList){    
-    
-    return topmostLocation;
-//    var result; 
-//    var query = topmostLocation + boardxy;  //start at topmostlocation and move down the column     
-//    var w = 1; 
-//    while(true){
-//        result = $.grep(inplayList, function(e){ return e.iD == query; });
-//        if (result.length == 0) {
-//            return query - boardxy; //subtrack away one because was incremented to test
-//        }else{
-//            w++;
-//            query = topmostLocation + w*boardxy; 
-//            //console.log("query is" + query)
-//        }
-//    }
+    var result; 
+    var query = topmostLocation - boardxy;  //start at topmostlocation and move up the column - so subtract    
+    var w = 1; 
+    while(true){
+        result = $.grep(inplayList, function(e){ return e.iD == query; });
+        if (result.length == 0) {
+            return query + boardxy; //addone because was incremented to test next space (which is decrement going up column)
+        }else{
+            w++;
+            query = topmostLocation - w*boardxy; 
+        }
+    }
 }
+
 
 function isaWord(testWord){
     
@@ -405,9 +405,17 @@ function indicateWrong(){
 }
 
 function indicateRightandlock(){
-    $(".tileNatural.onboardFresh").addClass("tileLocked");
-    $(".tileNatural.onboardFresh").draggable( "destroy" );
-    $(".tileNatural.onboardFresh").data("locked", true);
+    
+    $(".tileNatural.onboardFresh").each(function( index ){
+        console.log($(this));
+        console.log($(this).data("locked"));
+        if(!$(this).data("locked")){
+            $(this).draggable( "destroy" );  
+            $(this).addClass("tileLocked");
+            $(this).data("locked", true);
+        }
+    });
+    
     $(".gameSpaces.onboardFresh").data("locked", true);
 }
 //END Methods
