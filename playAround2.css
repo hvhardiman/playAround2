@@ -70,15 +70,17 @@ html{
 	line-height:1.0rem;
 }
 
-
-.tilePlayed{
-
+tileNatural.onboardFresh{
+    background: aqua;
 }
 
 .tileWrong{
-
+    background: firebrick
 }
-    
+
+.tileLocked{
+    background: greenyellow;
+}
 
 .container {
 	/*margin: 1rem auto;*/

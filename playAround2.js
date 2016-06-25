@@ -2,6 +2,7 @@ Math.seedrandom(0228);
 const htmlFontsize = 10; //usse this to handle rem in js
 const tileWidth = 5.4*htmlFontsize; //usse this to handle 
 const boardWidth = 12.0*tileWidth;
+const boardxy = 12; 
 
 var wordArray = [];
 var gameBoard = [];
@@ -10,6 +11,9 @@ var playedWord ="";
 var consonants = "bcdfghjklmnpqrstvwxyz";
 var vowels = "aeiou";
 var selectedTileobject;
+
+var totalPlays = 0;
+var totalPresses = 0;
 
 var points = {a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,
     l:1,
@@ -70,8 +74,8 @@ function createBoardspaces(){
 
             //logical data needed for visual support
             $(d).addClass("gameSpaces");
-            $(d).data("onboard", 0);
-            $(d).data("locked", 0);
+            $(d).data("onboard", false);
+            $(d).data("locked", false);
 
             $(d).data("storedtileId", 0); //what space is on me
             $(d).data("iD", spaceId); //who am i 
@@ -167,7 +171,7 @@ var tileId = 1;
             //Let know where current home is so it can return there
             $(d).data( "homeX", tile.startingX );
             $(d).data( "homeY", tile.startingY );
-            $(d).data( "locked", 0);
+            $(d).data( "locked", false);
                 
             //what space am I on
             $(d).data("spaceonId", 0);
@@ -247,43 +251,165 @@ function returnPointvalue(letter){
 //Tile Scoring Area - Methods
 //Tile Scoring Area - Methods
 function scoreHandler(inplayList){
+    
     console.log(inplayList);
-    console.log(passrowPlay(inplayList));
-    console.log(passcolPlay(inplayList));
     
-}
-
-function passrowPlay(inplayList){
-    for (var w = 0; w < inplayList.length; w++){
-        RowVal = inplayList[0].yVal;
-        if (inplayList[w].yVal != RowVal){
-            console.log("Bad Play Row");
-            return 0;
-            break;
-        }
-        console.log("Passed Test 1 Row " + inplayList[w].letterVal);
+    if(checkforPlay("col",inplayList)){
+        handleColplay(inplayList);
     }
-    return 1;
+    
+    console.log(checkforPlay("row", inplayList));
+    
 }
 
-function passcolPlay(inplayList){
-    for (var w = 0; w < inplayList.length; w++){
-        RowVal = inplayList[0].xVal;
-        if (inplayList[w].xVal != RowVal){
-            console.log("Bad Play Col");
-            return 0;
-            break;
+function checkforPlay(type, inplayList){
+    if(type === "row"){
+        for (var w = 0; w < inplayList.length; w++){
+            RowVal = inplayList[0].yVal;
+            if ((inplayList[w].fresh === 1)&&(inplayList[w].yVal != RowVal)){
+                console.log("Bad Play Row");
+                return 0;
+                break;
+            }   
+        //console.log("Passed Test 1 Row " + inplayList[w].letterVal);
         }
-        console.log("Passed Test 1 Col " + inplayList[w].letterVal);
-    }
+        
     return 1;
+    }
+    
+    else{
+        
+        for (var w = 0; w < inplayList.length; w++){
+            colVal = inplayList[0].xVal;
+            if ((inplayList[w].fresh === 1)&&(inplayList[w].xVal != colVal)){
+                console.log("Bad Play Col");
+                return 0;
+                break;
+            }
+        //console.log("Passed Test 1 Col " + inplayList[w].letterVal);
+        }
+    return 1;       
+    }   
 }
+
+
+function handleColplay(inplayList){
+    var startVal = getStartval(inplayList); 
+    var bottomVal = getbottomVal(startVal, inplayList);
+    var finaltestCol = gaptestCol(bottomVal, inplayList);
     
+    if(finaltestCol == 0){
+        console.log("Bad Play Col: Gap - STOP!!");
+        return;
+    }
+    
+    var topVal = gettopVal(startVal, inplayList);
+    var wordLength = ((bottomVal - topVal)/boardxy)+1;
+    
+    //console.log("wordLengthValue is: " + wordLength);
+    
+    //begin to push characters on string
+    var query = topVal;
+    var testString = "";
+    
+    for(var i = 0; i<wordLength; i++){
+        query = topVal+i*boardxy; 
+        result = $.grep(inplayList, function(e){ return e.iD == query; })[0];
+        testString+=result.letterVal;
+    }
+    
+    if(isaWord(testString)){
+        console.log("A WORD!!");
+        indicateRightandlock();
+    }else{
+        console.log("NOT A WORD!!");
+        indicateWrong();
+    }
+   
+  
+    
+    
+}
+
+function getStartval(inplayList){
+    for (var w = 0; w < inplayList.length; w++){
+            if (inplayList[w].fresh === 1){
+                startVal = inplayList[w].iD; 
+                //console.log(startVal);
+                return startVal;
+            }
+    }
+}
+
 
     
+function getbottomVal(topmostLocation, inplayList){    
+    var result; 
+    var query = topmostLocation + boardxy;  //start at topmostlocation and move down the column     
+    var w = 1; 
+    while(true){
+        result = $.grep(inplayList, function(e){ return e.iD == query; });
+        if (result.length == 0) {
+            return query - boardxy; //subtrack away one because was incremented to test next space
+        }else{
+            w++;
+            query = topmostLocation + w*boardxy; 
+        }
+    }
+}
 
+function gaptestCol(bottomLocation, inplayList){
+    for (var w = 0; w < inplayList.length; w++){
+            if ((inplayList[w].fresh === 1)&&(inplayList[w].iD > bottomLocation)){
+                return 0;
+            }
+    }
+}
 
+function gettopVal(topmostLocation, inplayList){    
+    
+    return topmostLocation;
+//    var result; 
+//    var query = topmostLocation + boardxy;  //start at topmostlocation and move down the column     
+//    var w = 1; 
+//    while(true){
+//        result = $.grep(inplayList, function(e){ return e.iD == query; });
+//        if (result.length == 0) {
+//            return query - boardxy; //subtrack away one because was incremented to test
+//        }else{
+//            w++;
+//            query = topmostLocation + w*boardxy; 
+//            //console.log("query is" + query)
+//        }
+//    }
+}
 
+function isaWord(testWord){
+    
+     for(i = 0; i < wordArray.length; i++){
+        dictWord = wordArray[i].replace(/(\r\n|\n|\r)/gm,""); 
+        if(testWord == dictWord){
+            return 1;
+        }
+     }
+    	
+    return 0;
+}
+
+function indicateWrong(){
+    $(".tileNatural.onboardFresh").addClass("tileWrong");
+    setTimeout(function () {
+        $(".tileNatural.onboardFresh").toggleClass("tileWrong");
+    }, 1000);
+
+}
+
+function indicateRightandlock(){
+    $(".tileNatural.onboardFresh").addClass("tileLocked");
+    $(".tileNatural.onboardFresh").draggable( "destroy" );
+    $(".tileNatural.onboardFresh").data("locked", true);
+    $(".gameSpaces.onboardFresh").data("locked", true);
+}
 //END Methods
 //END Methods
 //END Methods
@@ -360,6 +486,9 @@ $(".gameSpaces").droppable({
         	$(this).data("storedtileId", ui.draggable.data("iD")); //set the stored tile on gameSpace to id of tile
         	ui.draggable.data("spaceonId", $(this).data("iD")); //set the gamespaceId to of the tile object in question
             $(this).data("letterVal", ui.draggable.text());
+            
+            ui.draggable.addClass("onboardFresh");
+            $(this).addClass("onboardFresh");
 
         	//append 
         	// ui.draggable.css("left",-2); 
@@ -390,6 +519,7 @@ $(".tileNatural").draggable({
     	if($(this).data("spaceonId") != 0){
     		removetilefromSpace($(this).data("spaceonId"));//remove tile from space from a logical perspective
     		$(this).data("spaceonId", 0);//remove space from tile from a logical perspective 
+            $(this).removeClass("onboardFresh");
     	}
         
     },
@@ -423,7 +553,7 @@ $(".tileNatural").draggable({
 $( ".checkBtn" ).click(function() {
     
     var scoringObject = [];
-    var newtileFound = 0;
+    var newtileFound = false;
     
     $(".gameSpaces").each(function( index ){
         
@@ -434,23 +564,31 @@ $( ".checkBtn" ).click(function() {
             entry.xVal = $(this).css("left");
             entry.yVal = $(this).css("top");
             entry.letterVal = $(this).data("letterVal")[0];
+            entry.iD = $(this).data("iD")
             
             //assume locked
             entry.fresh = 0;
-            
-            if(!$(this).data("locked")){//if tile is fresh to board
-                newtileFound = 1;
+            console.log("Lock Status Tile: " + $(".tileNatural.onboardFresh").data("locked"));
+            console.log("Lock Status Space: " + $(this).data("locked"));
+            if($(this).data("locked")==false){//if tile is fresh to board
+                console.log("HERE");
+                newtileFound = true;
                 entry.fresh = 1;
                 entry.bonus = $(this).text();
+                
             }      
+        
             scoringObject.push(entry);
         }
         
 	});
-    
+    console.log("New Tile? " + newtileFound)
     if(newtileFound){
         scoreHandler(scoringObject);
+    }else{
+        console.log("no new tiles");
     }
+    
     
 });
 
