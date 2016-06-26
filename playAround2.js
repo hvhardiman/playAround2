@@ -122,7 +122,6 @@ function createBoardspaces(){
 // End of create tiles loop
 
 }
-
 //create tile objects for DOM and memory - initialization
 function createTilelist(){
 
@@ -191,7 +190,6 @@ var tileId = 1;
             //Draw Main Play Board here
     }
 }
-
 //function that gets the checker file form the server and loads it in memory inside wordArray 
 function createwordArray(){
     var file = "./wordsEn.txt";
@@ -201,21 +199,6 @@ function createwordArray(){
             wordArray[i]=lines[i];
         }
     }); 
-}
-
-//Return the index, works for tiles or gameBoard 
-function getId(type, xVal, yVal){
-    //console.log("Finding X: " + xVal + " Y: " + yVal);
-    if(type==="tile"){
-    //Find Object in Memory
-        for(var i=0; i < tileList.length; i++){
-            if((xVal==tileList[i].realX)&&(yVal == tileList[i].realY)){
-                return i;
-            }
-        }
-    }
-    console.log("XValue: " + xVal + " YValue: " + yVal);
-    alert("Something isn't right");
 }
 
 function removetilefromSpace(testSpace){
@@ -233,14 +216,12 @@ function isIntersectingsquare(pntX, pntY, squareX,squareY, width) {
             return 1;
         }                     
     }
-    return 0;                
+    return false;                
 }
-
 //rand number helper function
 function getRandomArbitrary(min, max) {
   return Math.random() * (max - min) + min;
 }
-
 //function that returns point value of a tile for scoring and formatting tiles
 function returnPointvalue(letter){
     return points[letter];
@@ -256,17 +237,23 @@ function scoreHandler(inplayList){
     
     if(checkforPlay("col",inplayList)){
         handleColplay(inplayList);
+        return;
     }
     
-    console.log(checkforPlay("row", inplayList));
+    if(checkforPlay("row",inplayList)){
+        handleRowplay(inplayList);
+        return;
+    }
+    
     
 }
+
 
 function checkforPlay(type, inplayList){
     if(type === "row"){
         for (var w = 0; w < inplayList.length; w++){
             RowVal = inplayList[0].yVal;
-            if ((inplayList[w].fresh === 1)&&(inplayList[w].yVal != RowVal)){
+            if ((inplayList[w].fresh === true)&&(inplayList[w].yVal != RowVal)){
                 console.log("Bad Play Row");
                 return 0;
                 break;
@@ -281,9 +268,9 @@ function checkforPlay(type, inplayList){
         
         for (var w = 0; w < inplayList.length; w++){
             colVal = inplayList[0].xVal;
-            if ((inplayList[w].fresh === 1)&&(inplayList[w].xVal != colVal)){
+            if ((inplayList[w].fresh === true)&&(inplayList[w].xVal != colVal)){
                 console.log("Bad Play Col");
-                return 0;
+                return false;
                 break;
             }
         //console.log("Passed Test 1 Col " + inplayList[w].letterVal);
@@ -292,46 +279,6 @@ function checkforPlay(type, inplayList){
     }   
 }
 
-
-function handleColplay(inplayList){
-    var startVal = getStartval(inplayList); 
-    var bottomVal = getbottomVal(startVal, inplayList);
-    var finaltestCol = gaptestCol(bottomVal, inplayList);
-    
-    if(finaltestCol == 0){
-        console.log("Bad Play Col: Gap - STOP!!");
-        return;
-    }
-    
-    var topVal = gettopVal(startVal, inplayList);
-    var wordLength = ((bottomVal - topVal)/boardxy)+1;
-    
-    //console.log("wordLengthValue is: " + wordLength);
-    
-    //begin to push characters on string
-    var query = topVal;
-    var testString = "";
-    
-    for(var i = 0; i<wordLength; i++){
-        query = topVal+i*boardxy; 
-        result = $.grep(inplayList, function(e){ return e.iD == query; })[0];
-        testString+=result.letterVal;
-    }
-    
-    console.log("Testing!! " + testString);
-    
-    if(isaWord(testString)){
-        console.log("A WORD!!");
-        indicateRightandlock();
-    }else{
-        console.log("NOT A WORD!!");
-        indicateWrong();
-    }
-   
-  
-    
-    
-}
 
 function getStartval(inplayList){
     for (var w = 0; w < inplayList.length; w++){
@@ -344,7 +291,35 @@ function getStartval(inplayList){
 }
 
 
+//Col Score Methods
+function handleColplay(inplayList){
+    var startVal = getStartval(inplayList); 
+    var bottomVal = getbottomVal(startVal, inplayList);
+    var finaltestCol = gaptestCol(bottomVal, inplayList);
     
+    if(finaltestCol == false){
+        console.log("Bad Play Col: Gap - STOP!!");
+        return;
+    }
+    
+    var topVal = gettopVal(startVal, inplayList);
+    var wordLength = ((bottomVal - topVal)/boardxy);
+    //console.log("wordLengthValue is: " + wordLength);
+    var res = testColword(topVal, wordLength, inplayList);
+    //begin to push characters on string
+    if(res === true){
+        console.log("A WORD!!");
+        indicateRightandlock();
+    }else{
+        console.log("NOT A WORD!!");
+        indicateWrong();
+    }
+    
+   
+  
+    
+    
+}
 function getbottomVal(topmostLocation, inplayList){    
     var result; 
     var query = topmostLocation + boardxy;  //start at topmostlocation and move down the column     
@@ -359,15 +334,13 @@ function getbottomVal(topmostLocation, inplayList){
         }
     }
 }
-
 function gaptestCol(bottomLocation, inplayList){
     for (var w = 0; w < inplayList.length; w++){
             if ((inplayList[w].fresh === 1)&&(inplayList[w].iD > bottomLocation)){
-                return 0;
+                return false;
             }
     }
 }
-
 function gettopVal(topmostLocation, inplayList){    
     var result; 
     var query = topmostLocation - boardxy;  //start at topmostlocation and move up the column - so subtract    
@@ -382,7 +355,113 @@ function gettopVal(topmostLocation, inplayList){
         }
     }
 }
+function testColword(start, length, inplayList){  
 
+    var query = start;
+    var testString = "";
+    var result;
+    
+    
+    for(var i = 0; i<=length; i++){
+        query = start+i*boardxy; 
+        result = $.grep(inplayList, function(e){ return e.iD == query; })[0];
+        testString+=result.letterVal;
+    }
+    
+    console.log("Testing!! " + testString);
+    
+    if(isaWord(testString)){
+        return true; 
+    }else{
+        return false;
+    }
+
+}
+//END Col Score Methods
+
+//Row Score Methods
+function handleRowplay(inplayList){
+    var startVal = getStartval(inplayList); 
+    var rightVal = getrightVal(startVal, inplayList);
+    console.log("Right Val: " + rightVal);
+    var finaltestRow = gaptestRow(rightVal, inplayList);
+    
+    if(finaltestRow == false){
+        console.log("Bad Play Row: Gap - STOP!!");
+        return false;
+    }
+    
+    var leftVal = getleftVal(startVal, inplayList);
+    var wordLength = ((rightVal - leftVal));
+    //console.log("wordLengthValue is: " + wordLength);
+    var res = testRowword(leftVal, wordLength, inplayList);
+    //begin to push characters on string
+    if(res === true){
+        console.log("A WORD!!");
+        indicateRightandlock();
+    }else{
+        console.log("NOT A WORD!!");
+        indicateWrong();
+    }   
+}
+function getrightVal(leftmostLocation, inplayList){    
+    var result; 
+    var query = leftmostLocation + 1;  //start at lefgmostlocation and move left on the row     
+    var w = 1; 
+    while(true){
+        result = $.grep(inplayList, function(e){ return e.iD == query; });
+        if (result.length == 0) {
+            return query - 1; //subtrack away one because was incremented to test next space
+        }else{
+            w++;
+            query = leftmostLocation + w; 
+        }
+    }
+}
+function gaptestRow(rightlocation, inplayList){
+    for (var w = 0; w < inplayList.length; w++){
+            if ((inplayList[w].fresh === 1)&&(inplayList[w].iD > rightlocation)){
+                return false;
+            }
+    }
+}
+function getleftVal(leftmostLocation, inplayList){    
+    var result; 
+    var query = leftmostLocation - 1;  //start at lefgmostlocation and move left on the row     
+    var w = 1; 
+    while(true){
+        result = $.grep(inplayList, function(e){ return e.iD == query; });
+        if (result.length == 0) {
+            return query + 1; //subtrack away one because was incremented to test next space
+        }else{
+            w++;
+            query = leftmostLocation - w; 
+        }
+    }
+}
+function testRowword(start, length, inplayList){  
+
+    var query = start;
+    var testString = "";
+    var result;
+    
+    
+    for(var i = 0; i<=length; i++){
+        query = start+i; 
+        result = $.grep(inplayList, function(e){ return e.iD == query; })[0];
+        testString+=result.letterVal;
+    }
+    
+    console.log("Testing!! " + testString);
+    
+    if(isaWord(testString)){
+        return true; 
+    }else{
+        return false;
+    }
+
+}
+//End Row Score Methods
 
 function isaWord(testWord){
     
@@ -393,9 +472,8 @@ function isaWord(testWord){
         }
      }
     	
-    return 0;
+    return false;
 }
-
 function indicateWrong(){
     $(".tileNatural.onboardFresh").addClass("tileWrong");
     setTimeout(function () {
@@ -403,7 +481,6 @@ function indicateWrong(){
     }, 1000);
 
 }
-
 function indicateRightandlock(){
     
     $(".tileNatural.onboardFresh").each(function( index ){
@@ -575,13 +652,13 @@ $( ".checkBtn" ).click(function() {
             entry.iD = $(this).data("iD")
             
             //assume locked
-            entry.fresh = 0;
+            entry.fresh = false;
             console.log("Lock Status Tile: " + $(".tileNatural.onboardFresh").data("locked"));
             console.log("Lock Status Space: " + $(this).data("locked"));
             if($(this).data("locked")==false){//if tile is fresh to board
                 console.log("HERE");
                 newtileFound = true;
-                entry.fresh = 1;
+                entry.fresh = true;
                 entry.bonus = $(this).text();
                 
             }      
