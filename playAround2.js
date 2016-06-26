@@ -252,7 +252,8 @@ function scoreHandler(inplayList){
 function checkforPlay(type, inplayList){
     if(type === "row"){
         for (var w = 0; w < inplayList.length; w++){
-            RowVal = inplayList[0].yVal;
+            RowVal = getstartvalY(inplayList);
+            console.log("Row Val: " + RowVal + "Array Val: " + inplayList[w].yVal);
             if ((inplayList[w].fresh === true)&&(inplayList[w].yVal != RowVal)){
                 console.log("Bad Play Row");
                 return 0;
@@ -267,7 +268,7 @@ function checkforPlay(type, inplayList){
     else{
         
         for (var w = 0; w < inplayList.length; w++){
-            colVal = inplayList[0].xVal;
+            colVal = getstartvalX(inplayList);
             if ((inplayList[w].fresh === true)&&(inplayList[w].xVal != colVal)){
                 console.log("Bad Play Col");
                 return false;
@@ -279,17 +280,32 @@ function checkforPlay(type, inplayList){
     }   
 }
 
-
+//Can be condensed together
 function getStartval(inplayList){
     for (var w = 0; w < inplayList.length; w++){
-            if (inplayList[w].fresh === 1){
+            if (inplayList[w].fresh === true){
                 startVal = inplayList[w].iD; 
                 //console.log(startVal);
                 return startVal;
             }
     }
 }
-
+//Can be condensed together
+function getstartvalX(inplayList){
+    for (var w = 0; w < inplayList.length; w++){
+            if (inplayList[w].fresh === true){
+                return inplayList[w].xVal;
+            }
+    }
+}
+//Can be condensed together
+function getstartvalY(inplayList){
+    for (var w = 0; w < inplayList.length; w++){
+            if (inplayList[w].fresh === true){
+                return inplayList[w].yVal;
+            }
+    }
+}
 
 //Col Score Methods
 function handleColplay(inplayList){
@@ -308,17 +324,18 @@ function handleColplay(inplayList){
     var res = testColword(topVal, wordLength, inplayList);
     //begin to push characters on string
     if(res === true){
-        console.log("A WORD!!");
-        indicateRightandlock();
+        console.log("MAIN Word IS A WORD!!");
+        if(testperpendicularRows(inplayList)){
+            indicateRightandlock(); 
+        }else{
+            console.log("Some Subword NOT A WORD!!");
+            indicateWrong();
+        }
+        
     }else{
-        console.log("NOT A WORD!!");
+        console.log("MAIN WORD NOT A WORD!!");
         indicateWrong();
     }
-    
-   
-  
-    
-    
 }
 function getbottomVal(topmostLocation, inplayList){    
     var result; 
@@ -375,6 +392,30 @@ function testColword(start, length, inplayList){
     }else{
         return false;
     }
+}
+
+
+function testperpendicularRows(inplayList){  
+
+    for (var w = 0; w < inplayList.length; w++){
+            if (inplayList[w].fresh === true){
+                startVal = inplayList[w].iD; 
+                var rightVal = getrightVal(startVal, inplayList);
+                var leftVal = getleftVal(startVal, inplayList);
+                var wordLength = ((rightVal - leftVal));
+                if(wordLength!=0){
+                    var res = testRowword(leftVal, wordLength, inplayList);
+                //console.log(startVal);
+                    if(res===false){
+                        console.log("Bad Play: Perpendicular Row - STOP!!");   
+                        return false;
+                    }else{
+                        console.log("SUB Word IS A WORD: Perpendicular Row!!");
+                    }
+                }
+            }
+    }
+    return true; 
 
 }
 //END Col Score Methods
@@ -397,13 +438,20 @@ function handleRowplay(inplayList){
     var res = testRowword(leftVal, wordLength, inplayList);
     //begin to push characters on string
     if(res === true){
-        console.log("A WORD!!");
-        indicateRightandlock();
+        console.log("MAIN ROW Word IS A WORD!!");
+        if(testperpendicularCols(inplayList)){
+            indicateRightandlock(); 
+        }else{
+            console.log("Some COL Subword NOT A WORD!!");
+            indicateWrong();
+        }
     }else{
-        console.log("NOT A WORD!!");
+        console.log("MAIN WORD NOT A WORD!!");
         indicateWrong();
-    }   
+    }
 }
+
+
 function getrightVal(leftmostLocation, inplayList){    
     var result; 
     var query = leftmostLocation + 1;  //start at lefgmostlocation and move left on the row     
@@ -459,6 +507,32 @@ function testRowword(start, length, inplayList){
     }else{
         return false;
     }
+
+}
+
+function testperpendicularCols(inplayList){  
+
+    for (var w = 0; w < inplayList.length; w++){
+            if (inplayList[w].fresh === true){
+                startVal = inplayList[w].iD; 
+                var bottomVal = getbottomVal(startVal, inplayList);
+                var topVal = gettopVal(startVal, inplayList);
+                var wordLength = ((bottomVal - topVal)/boardxy);
+                console.log("Word Length")
+                if(wordLength!=0){
+                    var res = testColword(topVal, wordLength, inplayList);
+                //console.log(startVal);
+                    if(res===false){
+                        console.log("Bad Play: Perpendicular Col - STOP!!");   
+                        return false; 
+                        break;
+                    }else{
+                        console.log("SUB Word IS A WORD: Perpendicular Col!!");
+                    }
+                }
+            }
+    }
+    return true; 
 
 }
 //End Row Score Methods
