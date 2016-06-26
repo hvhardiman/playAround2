@@ -235,16 +235,20 @@ function scoreHandler(inplayList){
     
     console.log(inplayList);
     
-    if(checkforPlay("col",inplayList)){
+    if((checkforPlay("col",inplayList)&&(!checkforPlay("row", inplayList)))){
         handleColplay(inplayList);
         return;
     }
     
-    if(checkforPlay("row",inplayList)){
+    if((!checkforPlay("col",inplayList)&&(checkforPlay("row", inplayList)))){
         handleRowplay(inplayList);
         return;
     }
     
+    if((checkforPlay("col",inplayList)&&(checkforPlay("row", inplayList)))){
+        console.log("SINGLE TILE PLAYED");
+        return;
+    }
     
 }
 
