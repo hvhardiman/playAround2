@@ -34,7 +34,7 @@ var points = {a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,
 };
 
 //Go ahead and start getting the large file ASAP and setting up objects and DOM
-//need to do this first to make adding even listners less of a headache
+//need to do this first to make adding event listners less of a headache
 createwordArray();
 createTilelist();
 createBoardspaces();
@@ -205,7 +205,8 @@ function removetilefromSpace(testSpace){
 	$(".gameSpaces").each(function( index ){
 		if($(this).data("iD")==testSpace){
 			$(this).data("storedtileId", 0); //what space is on me
-		}  		
+            $(this).removeClass("onboardFresh");
+		}  	
 	});
 }
 
@@ -246,7 +247,7 @@ function scoreHandler(inplayList){
     }
     
     if((checkforPlay("col",inplayList)&&(checkforPlay("row", inplayList)))){
-        console.log("SINGLE TILE PLAYED");
+        handleSingletileplay(inplayList);
         return;
     }
     
@@ -311,7 +312,60 @@ function getstartvalY(inplayList){
     }
 }
 
-//Col Score Methods
+
+function handleSingletileplay(inplayList){
+    var startVal = getStartval(inplayList);
+    
+    var bottomVal = getbottomVal(startVal, inplayList);
+    var topVal = gettopVal(startVal, inplayList); 
+    var rightVal = getrightVal(startVal, inplayList);
+    var leftVal = getleftVal(startVal, inplayList);
+    
+    if(bottomVal!=topVal){
+        
+        var wordLength = ((bottomVal - topVal)/boardxy);
+        console.log("WLength: " + wordLength);
+        var res = testColword(topVal, wordLength, inplayList);
+        
+        if(res === true){
+            console.log("SINGLE TILE UP DOWN A WORD!!");
+            indicateRightandlock(); 
+                
+        } else{
+                
+            console.log("SINGLE TILE UP DOWN NOT A WORD!!");
+            indicateWrong();
+            return;
+        }
+    }
+        
+
+    
+    if(leftVal!=rightVal){
+        var wordLength = rightVal - leftVal;
+        var res = testRowword(leftVal, wordLength, inplayList);
+        
+        if(res === true){
+            console.log("SINGLE TILE LEFT RIGHT A WORD!!");
+            indicateRightandlock();  
+        }else{
+            console.log("SINGLE TILE LEFT RIGHT NOT A WORD!!");
+            indicateWrong(); 
+            return;
+        }
+        
+    }
+
+        
+    if((leftVal == rightVal)&&(bottomVal == topVal)){
+        console.log("BAD PLAY SINGLE TILE!!");
+        return;
+    }
+    
+}
+
+
+//Col Check Methods
 function handleColplay(inplayList){
     var startVal = getStartval(inplayList); 
     var bottomVal = getbottomVal(startVal, inplayList);
@@ -397,8 +451,6 @@ function testColword(start, length, inplayList){
         return false;
     }
 }
-
-
 function testperpendicularRows(inplayList){  
 
     for (var w = 0; w < inplayList.length; w++){
@@ -424,7 +476,7 @@ function testperpendicularRows(inplayList){
 }
 //END Col Score Methods
 
-//Row Score Methods
+//Row Check Methods
 function handleRowplay(inplayList){
     var startVal = getStartval(inplayList); 
     var rightVal = getrightVal(startVal, inplayList);
@@ -454,8 +506,6 @@ function handleRowplay(inplayList){
         indicateWrong();
     }
 }
-
-
 function getrightVal(leftmostLocation, inplayList){    
     var result; 
     var query = leftmostLocation + 1;  //start at lefgmostlocation and move left on the row     
@@ -513,7 +563,6 @@ function testRowword(start, length, inplayList){
     }
 
 }
-
 function testperpendicularCols(inplayList){  
 
     for (var w = 0; w < inplayList.length; w++){
@@ -562,15 +611,18 @@ function indicateWrong(){
 function indicateRightandlock(){
     
     $(".tileNatural.onboardFresh").each(function( index ){
-        console.log($(this));
+        
         console.log($(this).data("locked"));
         if(!$(this).data("locked")){
             $(this).draggable( "destroy" );  
             $(this).addClass("tileLocked");
             $(this).data("locked", true);
+            $(this).removeClass("onboardFresh");
         }
+        
     });
     
+    console.log($(this));
     $(".gameSpaces.onboardFresh").data("locked", true);
 }
 //END Methods
@@ -701,6 +753,9 @@ $(".tileNatural").draggable({
         }else{//Tile dropped over location not on board - send home
  			$(clickedTile).css("left", $(clickedTile).data("homeX")); //change to home locationX
             $(clickedTile).css("top", $(clickedTile).data("homeY")); //change to home locationY
+//            removetilefromSpace($(this).data("spaceonId"));//remove tile from space from a logical perspective
+//    		$(this).data("spaceonId", 0);//remove space from tile from a logical perspective 
+//            $(this).removeClass("onboardFresh");
             console.log("NOT - In Game Board");
         }
 
