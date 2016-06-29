@@ -592,14 +592,32 @@ function testperpendicularCols(inplayList){
 
 function isaWord(testWord){
     
-     for(i = 0; i < wordArray.length; i++){
-        dictWord = wordArray[i].replace(/(\r\n|\n|\r)/gm,""); 
-        if(testWord == dictWord){
-            return 1;
-        }
-     }
-    	
-    return false;
+//     for(i = 0; i < wordArray.length; i++){
+//        dictWord = wordArray[i].replace(/(\r\n|\n|\r)/gm,""); 
+//        if(testWord == dictWord){
+//            return true;
+//        }
+//     }
+//    return false;
+    
+    
+    $.get('http://www.dictionaryapi.com/api/v1/references/collegiate/xml/test?key=66692fc8-763e-4328-9575-f6ac1888c2d5', function(data){
+        
+        var json = $.xml2json(data);
+        console.log(json);
+        
+        $.each(json["#document"].entry_list, function(index, element) {
+            console.log(element); 
+        });
+        
+//        console.log(data);
+    }, 'xml')
+    
+//  $.getJSON('http://www.dictionaryapi.com/api/v1/references/collegiate/xml/test?key=66692fc8-763e-4328-9575-f6ac1888c2d5', function(data){
+//    console.log(data);
+//  });
+    
+    
 }
 function indicateWrong(){
     $(".tileNatural.onboardFresh").addClass("tileWrong");
