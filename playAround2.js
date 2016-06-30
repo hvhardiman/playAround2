@@ -592,26 +592,65 @@ function testperpendicularCols(inplayList){
 
 function isaWord(testWord){
     
-//     for(i = 0; i < wordArray.length; i++){
-//        dictWord = wordArray[i].replace(/(\r\n|\n|\r)/gm,""); 
-//        if(testWord == dictWord){
+     for(i = 0; i < wordArray.length; i++){
+        dictWord = wordArray[i].replace(/(\r\n|\n|\r)/gm,""); 
+        if(testWord == dictWord){
+            return true;
+        }
+     }
+    return false;
+    
+//    var baseuri = "http://api.wordnik.com:80/v4/word.json/"; 
+//    var word = testWord;
+//    var theRest = "/definitions?limit=200&includeRelated=true&useCanonical=false&includeTags=false&api_key=005e228be6690fb08500a0521b4058f1441f25d7df48d1930";
+//    var finalAddress = baseuri + word + theRest;
+//   
+//    $.getJSON( finalAddress, function( data ) {
+//        async: false;
+//    }).done(function(data) {
+//        console.log("DONE!")
+//        console.log(data);
+//        if(data === []){
+//            console.log("NOT A WORD AJAX: " + word);
+//            return false;
+//        }else{
+//            console.log("IS A WORD AJAX: " + word);
 //            return true;
 //        }
-//     }
-//    return false;
+//    });
+//    
+    
+//    $.ajax({
+//        dataType: "json",
+//        url: url,
+//        data: data,
+//        success: success
+//    });
     
     
-    $.get('http://www.dictionaryapi.com/api/v1/references/collegiate/xml/test?key=66692fc8-763e-4328-9575-f6ac1888c2d5', function(data){
-        
-        var json = $.xml2json(data);
-        console.log(json);
-        
-        $.each(json["#document"].entry_list, function(index, element) {
-            console.log(element); 
-        });
-        
-//        console.log(data);
-    }, 'xml')
+//    var baseuri = "http://www.dictionaryapi.com/api/v1/references/collegiate/xml/"; 
+//    var word = testWord;
+//    var theRest = "?key=66692fc8-763e-4328-9575-f6ac1888c2d5";
+//    var finalAddress = baseuri + word + theRest;
+//    $.get(finalAddress, function(data){
+//        
+//        005e228be6690fb08500a0521b4058f1441f25d7df48d1930
+//        http://api.wordnik.com:80/v4/word.json/tresd?useCanonical=false&includeSuggestions=false&api_key=
+//        
+//        
+//        var json = $.xml2json(data);
+//        console.log(json);
+//        console.log(json["#document"].entry_list.suggestion);
+//        if(json["#document"].entry_list.suggestion === undefined){
+//            console.log("GOOD WORD REST: " + testWord);
+//            return true;
+//        }else{
+//            console.log("BAD WORD REST: " + testWord);
+//            return false;
+//        }
+//        
+//
+//    }, 'xml')
     
 //  $.getJSON('http://www.dictionaryapi.com/api/v1/references/collegiate/xml/test?key=66692fc8-763e-4328-9575-f6ac1888c2d5', function(data){
 //    console.log(data);
@@ -835,3 +874,4 @@ $( ".checkBtn" ).click(function() {
 //End Event Listners
 //End Event Listners
 //End Event Listners
+
