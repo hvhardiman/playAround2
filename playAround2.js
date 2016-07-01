@@ -371,6 +371,8 @@ function handleColplay(inplayList){
     var bottomVal = getbottomVal(startVal, inplayList);
     var finaltestCol = gaptestCol(bottomVal, inplayList);
     
+    var currentScore =0;
+    
     if(finaltestCol == false){
         console.log("Bad Play Col: Gap - STOP!!");
         return;
@@ -381,10 +383,14 @@ function handleColplay(inplayList){
     //console.log("wordLengthValue is: " + wordLength);
     var res = testColword(topVal, wordLength, inplayList);
     //begin to push characters on string
+    
     if(res === true){
         console.log("MAIN Word IS A WORD!!");
+        currentScore = res;
         if(testperpendicularRows(inplayList)){
+            //currentScore = testperpendicularRows(inplayList);
             indicateRightandlock(); 
+            
         }else{
             console.log("Some Subword NOT A WORD!!");
             indicateWrong();
@@ -446,11 +452,52 @@ function testColword(start, length, inplayList){
     console.log("Testing!! " + testString);
     
     if(isaWord(testString)){
+        scoreColword(start, length, inplayList);
         return true; 
     }else{
         return false;
     }
 }
+
+function scoreColword(start, length, inplayList){  
+
+    var query = start;
+    var result;
+    
+    var subScore = 0;
+    var multiplier = 1;
+    
+    for(var i = 0; i<=length; i++){
+        query = start+i*boardxy; 
+        result = $.grep(inplayList, function(e){ return e.iD == query; })[0];
+        
+        if((result.bonus!= "  ")&&(result.bonus!=undefined)){
+            if(result.bonus=="TL"){
+                subScore = subScore + returnPointvalue(result.letterVal) * 3;
+            }
+            if(result.bonus=="DL"){
+                subScore = subScore + returnPointvalue(result.letterVal) * 2;
+            }
+            if(result.bonus=="TW"){
+                multiplier = multiplier * 3;
+                subScore = subScore + returnPointvalue(result.letterVal);
+            }
+            if(result.bonus=="DW"){
+                multiplier = multiplier * 2;
+                subScore = subScore + returnPointvalue(result.letterVal);
+            }
+        }else{
+            
+            subScore = subScore + returnPointvalue(result.letterVal);
+        }
+    }
+    console.log("subscore " + subScore + "mult: " + multiplier);
+    subScore = subScore * multiplier;
+    $(".scoreIndicator").text(subScore);
+    return subScore;
+}
+
+
 function testperpendicularRows(inplayList){  
 
     for (var w = 0; w < inplayList.length; w++){
@@ -480,7 +527,6 @@ function testperpendicularRows(inplayList){
 function handleRowplay(inplayList){
     var startVal = getStartval(inplayList); 
     var rightVal = getrightVal(startVal, inplayList);
-    console.log("Right Val: " + rightVal);
     var finaltestRow = gaptestRow(rightVal, inplayList);
     
     if(finaltestRow == false){
@@ -491,9 +537,9 @@ function handleRowplay(inplayList){
     var leftVal = getleftVal(startVal, inplayList);
     var wordLength = ((rightVal - leftVal));
     //console.log("wordLengthValue is: " + wordLength);
-    var res = testRowword(leftVal, wordLength, inplayList);
-    //begin to push characters on string
-    if(res === true){
+    testRowword(leftVal, wordLength, inplayList).done(function(res){
+        
+    if(res){
         console.log("MAIN ROW Word IS A WORD!!");
         if(testperpendicularCols(inplayList)){
             indicateRightandlock(); 
@@ -505,6 +551,10 @@ function handleRowplay(inplayList){
         console.log("MAIN WORD NOT A WORD!!");
         indicateWrong();
     }
+           
+    })
+    //begin to push characters on string
+    
 }
 function getrightVal(leftmostLocation, inplayList){    
     var result; 
@@ -555,14 +605,19 @@ function testRowword(start, length, inplayList){
     }
     
     console.log("Testing!! " + testString);
-    
-    if(isaWord(testString)){
-        return true; 
-    }else{
-        return false;
-    }
+
+    return isaWord(testString).done(function(returnval){
+        console.log("Done in");
+        if(returnval){
+            scoreRowword(start, length, inplayList);
+            return true; 
+        }else{
+            return false;
+        }
+    });
 
 }
+
 function testperpendicularCols(inplayList){  
 
     for (var w = 0; w < inplayList.length; w++){
@@ -588,37 +643,80 @@ function testperpendicularCols(inplayList){
     return true; 
 
 }
+
+function scoreRowword(start, length, inplayList){  
+
+    var query = start;
+    var result;
+    
+    var subScore = 0;
+    var multiplier = 1;
+    
+    
+    
+    for(var i = 0; i<=length; i++){
+        query = start+i; 
+        result = $.grep(inplayList, function(e){ return e.iD == query; })[0];
+        
+        console.log("letterval " + result.letterVal + " bonus: " + result.bonus);
+        
+        if((result.bonus!= "  ")&&(result.bonus!=undefined)){
+            if(result.bonus=="TL"){
+                subScore = subScore + returnPointvalue(result.letterVal) * 3;
+            }
+            if(result.bonus=="DL"){
+                subScore = subScore + returnPointvalue(result.letterVal) * 2;
+            }
+            if(result.bonus=="TW"){
+                multiplier = multiplier * 3;
+                subScore = subScore + returnPointvalue(result.letterVal);
+            }
+            if(result.bonus=="DW"){
+                multiplier = multiplier * 2;
+                subScore = subScore + returnPointvalue(result.letterVal);
+            }
+        }else{
+            
+            subScore = subScore + returnPointvalue(result.letterVal);
+        }
+    }
+    console.log("subscore " + subScore + "mult: " + multiplier);
+    subScore = subScore * multiplier;
+    $(".scoreIndicator").text(subScore);
+    return subScore;
+}
+
 //End Row Score Methods
 
 function isaWord(testWord){
     
-     for(i = 0; i < wordArray.length; i++){
-        dictWord = wordArray[i].replace(/(\r\n|\n|\r)/gm,""); 
-        if(testWord == dictWord){
-            return true;
-        }
-     }
-    return false;
-    
-//    var baseuri = "http://api.wordnik.com:80/v4/word.json/"; 
-//    var word = testWord;
-//    var theRest = "/definitions?limit=200&includeRelated=true&useCanonical=false&includeTags=false&api_key=005e228be6690fb08500a0521b4058f1441f25d7df48d1930";
-//    var finalAddress = baseuri + word + theRest;
-//   
-//    $.getJSON( finalAddress, function( data ) {
-//        async: false;
-//    }).done(function(data) {
-//        console.log("DONE!")
-//        console.log(data);
-//        if(data === []){
-//            console.log("NOT A WORD AJAX: " + word);
-//            return false;
-//        }else{
-//            console.log("IS A WORD AJAX: " + word);
+//     for(i = 0; i < wordArray.length; i++){
+//        dictWord = wordArray[i].replace(/(\r\n|\n|\r)/gm,""); 
+//        if(testWord == dictWord){
 //            return true;
 //        }
-//    });
-//    
+//     }
+//    return false;
+    
+    var baseuri = "http://api.wordnik.com:80/v4/word.json/"; 
+    var word = testWord;
+    var theRest = "/definitions?limit=200&includeRelated=true&useCanonical=false&includeTags=false&api_key=005e228be6690fb08500a0521b4058f1441f25d7df48d1930";
+    var finalAddress = baseuri + word + theRest;
+   
+    return $.getJSON( finalAddress, function( data ) {
+        async: false;
+    }).done(function(data) {
+        console.log("DONE!")
+        console.log(data);
+        if(data === []){
+            console.log("NOT A WORD AJAX: " + word);
+            return false;
+        }else{
+            console.log("IS A WORD AJAX: " + word);
+            return true;
+        }
+    });
+    
     
 //    $.ajax({
 //        dataType: "json",
@@ -666,10 +764,7 @@ function indicateWrong(){
 
 }
 function indicateRightandlock(){
-    
     $(".tileNatural.onboardFresh").each(function( index ){
-        
-        console.log($(this).data("locked"));
         if(!$(this).data("locked")){
             $(this).draggable( "destroy" );  
             $(this).addClass("tileLocked");
@@ -678,8 +773,6 @@ function indicateRightandlock(){
         }
         
     });
-    
-    console.log($(this));
     $(".gameSpaces.onboardFresh").data("locked", true);
 }
 //END Methods
