@@ -376,7 +376,7 @@ function handleColplay(inplayList){
     var wordLength = ((bottomVal - topVal)/boardxy);
     //console.log("wordLengthValue is: " + wordLength);
     //begin to push characters on string
-    testColword(topVal, wordLength, inplayList).done(function(res){
+    testColword(topVal, wordLength, inplayList).then(function(res){
         if(res){
             console.log("MAIN Word IS A WORD!!");
             currentScore = res;
@@ -535,7 +535,7 @@ function handleRowplay(inplayList){
     var leftVal = getleftVal(startVal, inplayList);
     var wordLength = ((rightVal - leftVal));
     //console.log("wordLengthValue is: " + wordLength);
-    testRowword(leftVal, wordLength, inplayList).done(function(res){
+    testRowword(leftVal, wordLength, inplayList).then(function(res){
         console.log("Returned Val: " + res);
         
         if(res){
@@ -634,7 +634,7 @@ function testperpendicularCols(inplayList){
                 var wordLength = ((bottomVal - topVal)/boardxy);
 
                 if(wordLength!=0){
-                    testColword(topVal, wordLength, inplayList).done(function(res){
+                    testColword(topVal, wordLength, inplayList).then(function(res){
                 //console.log(startVal);
                         if(res){
                             console.log("SUB Word IS A WORD: Perpendicular Col!!");
@@ -648,12 +648,10 @@ function testperpendicularCols(inplayList){
             }
         }
         
+        resolve(playStatus);
+        
     });
     
-    return promise.then(function() {
-        console.log("playStatus: " + playStatus);
-        return playStatus;
-    });
      console.log("playStatus below: " + playStatus);
      return promise;
 }
