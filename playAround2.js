@@ -1,6 +1,7 @@
 Math.seedrandom(0228);
-const htmlFontsize = 10; //usse this to handle rem in js
-const tileWidth = 5.4*htmlFontsize; //usse this to handle 
+const htmlFontsize = 8; //usse this to handle rem in js
+const tileMargin = .02*htmlFontsize;
+const tileWidth = 5*htmlFontsize +2*tileMargin*htmlFontsize; //usse this to handle 
 const boardWidth = 12.0*tileWidth;
 const boardxy = 12; 
 
@@ -549,7 +550,7 @@ function handleRowplay(inplayList){
         if(res){
             console.log("MAIN ROW Word IS A WORD!!");
             testperpendicularCols(inplayList).then(function(goodperpPlay){
-                console.log("goodperprowPlay: " + goodperpPlay);
+                console.log("goodperpColPlay: " + goodperpPlay);
                 if(goodperpPlay){
                     indicateRightandlock(); 
                 }else{

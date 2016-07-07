@@ -1,13 +1,19 @@
 /*
-*{
+* {
 	border: 2px solid red;
 }
 */
+
 html{
-	font-size: 10px;
+	font-size: 8px;
+    overflow: scroll;
 }
 
 .gameSpaces{}
+.gameArea{
+	/*important makes property*/
+	margin: 20px auto; 
+}
 
 .gamespace_hover{
 	/*important makes property*/
@@ -84,12 +90,12 @@ html{
 
 .container {
 	/*margin: 1rem auto;*/
-/*	float: left;*/
-    margin: 20px auto;
-	max-width: 600px;
-	width: 64.8rem;
-	height: 64.8rem;
-	max-width: 65rem ; 
+	float: left;
+/*    margin: 20px auto;*/
+/*	max-width: 600px;*/
+	width: 63.84rem; /*A function of tilewidth*/
+	height: 63.84rem;
+	max-width: 63.84rem; 
 	position: relative;
 	border: 1px solid orange;
 	background: #704000;
@@ -98,14 +104,14 @@ html{
 .tileArea {
 	/*margin: 1rem auto;*/
     margin: 20px auto;
-/*	float: left;*/
+	float: left;
 	width: 59.3rem;
 	height: 16.2rem;
-	max-width: 65rem ; 
+/*	max-width: 65rem ; */
 	position: relative;
 	/*border: 1px solid orange;*/
 	background: gray;
-/*	margin-left: 5.5rem;*/
+	margin-top: 26.5rem;
 }
 
 .checkBtn{
