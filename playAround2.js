@@ -15,24 +15,9 @@ var selectedTileobject;
 
 var totalPlays = 0;
 var totalPresses = 0;
+var totalScore = 0;
 
-var points = {a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,
-    l:1,
-    m:4,
-    n:1,
-    o:1,
-    p:3,
-    q:10,
-    r:1,
-    s:1,
-    t:1,
-    u:1,
-    v:4,
-    w:4,
-    x:8,
-    y:4,
-    z:10
-};
+var points = {a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,l:1,m:4,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:1,v:4,w:4,x:8,y:4,z:10};
 
 //Go ahead and start getting the large file ASAP and setting up objects and DOM
 //need to do this first to make adding event listners less of a headache
@@ -369,7 +354,7 @@ function handleColplay(inplayList){
     var bottomVal = getbottomVal(startVal, inplayList);
     var finaltestCol = gaptestCol(bottomVal, inplayList);
     
-    var currentScore =0;
+    var mainScore =0;
     
     if(finaltestCol == false){
         console.log("Bad Play Col: Gap - STOP!!");
@@ -381,12 +366,22 @@ function handleColplay(inplayList){
     //console.log("wordLengthValue is: " + wordLength);
     //begin to push characters on string
     testColword(topVal, wordLength, inplayList).then(function(res){
+        mainScore = res;
         if(res){
             console.log("MAIN COL Word IS A WORD!!");
             testperpendicularRows(inplayList).then(function(goodperpPlay){
                 console.log("goodperprowPlay: " + goodperpPlay);
                 if((goodperpPlay)||(goodperpPlay === undefined)){
+                    
                     indicateRightandlock(); 
+                    
+                    if(goodperpPlay === undefined){
+                        totalScore = totalScore + mainScore;
+                    }else{
+                        totalScore = totalScore + mainScore + (goodperpPlay-1); 
+                    }
+                    
+                    console.log("New Total Score: " + totalScore)
                 }else{
                     console.log("Some ROW Subword NOT A WORD!!");
                     indicateWrong();
@@ -459,42 +454,45 @@ function testColword(start, length, inplayList){
         }
     });
 }
-
-
 function testperpendicularRows(inplayList){  
 
     var playStatus = true;
     var sequence = Promise.resolve();
-    
-    
-    
-        for (var w = 0; w < inplayList.length; w++){
-            if (inplayList[w].fresh === true){
-                startVal = inplayList[w].iD; 
+    var testVal = 0;
+        
+    inplayList.forEach(function(w){
+            if (w.fresh === true){
+                startVal = w.iD;
                 var rightVal = getrightVal(startVal, inplayList);
                 var leftVal = getleftVal(startVal, inplayList);
                 var wordLength = ((rightVal - leftVal));
                 if(wordLength!=0){
                     sequence = sequence.then(function(){
+                        testVal++;
                         return testRowword(leftVal, wordLength, inplayList);
-                    });
-                }
-            }
-        }
-    
-        sequence.then(function(res){
-            console.log("Returned Val: " + res);
-                    //console.log(startVal);
-            if(res){
-                console.log("SUB Word IS A WORD: Perpendicular Row!!");
-                return res;
-            }else{
+                    }).then(function(res){
+                        
+                        console.log("Returned Val: " + res);
+                        console.log("Test Val: " + testVal);
+                        if(res&&playStatus){
+                            console.log("SUB Word IS A WORD: Perpendicular Row!!");
+                            playStatus+=res;
+                        }else{
 
-                console.log("Bad Play: Perpendicular Row - STOP!!");   
-                playStatus = false;
-                return false;
+                            console.log("Bad Play: Perpendicular Row - STOP!!");   
+                            playStatus = false;
+                        }
+                        
+                        return playStatus;
+                    });
+                    
+                }
+                
+                
             }
-        });
+      
+        
+    });
 
     
 //    console.log("playStatus resolved perpRows: " + playStatus);
