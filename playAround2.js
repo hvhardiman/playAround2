@@ -342,6 +342,7 @@ function handleSingletileplay(inplayList){
         
     if((leftVal == rightVal)&&(bottomVal == topVal)){
         console.log("BAD PLAY SINGLE TILE!!");
+        indicateWrong();
         return;
     }
     
@@ -358,6 +359,7 @@ function handleColplay(inplayList){
     
     if(finaltestCol == false){
         console.log("Bad Play Col: Gap - STOP!!");
+        indicateWrong();
         return;
     }
     
@@ -410,7 +412,7 @@ function getbottomVal(topmostLocation, inplayList){
 }
 function gaptestCol(bottomLocation, inplayList){
     for (var w = 0; w < inplayList.length; w++){
-            if ((inplayList[w].fresh === 1)&&(inplayList[w].iD > bottomLocation)){
+            if ((inplayList[w].fresh === true)&&(inplayList[w].iD > bottomLocation)){
                 return false;
             }
     }
@@ -545,6 +547,7 @@ function handleRowplay(inplayList){
     
     if(finaltestRow == false){
         console.log("Bad Play Row: Gap - STOP!!");
+        indicateWrong();
         return false;
     }
     
@@ -593,7 +596,7 @@ function getrightVal(leftmostLocation, inplayList){
 }
 function gaptestRow(rightlocation, inplayList){
     for (var w = 0; w < inplayList.length; w++){
-            if ((inplayList[w].fresh === 1)&&(inplayList[w].iD > rightlocation)){
+            if ((inplayList[w].fresh === true)&&(inplayList[w].iD > rightlocation)){
                 return false;
             }
     }
