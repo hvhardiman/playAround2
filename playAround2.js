@@ -19,8 +19,6 @@ var totalScore = 0;
 
 var points = {a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,l:1,m:4,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:1,v:4,w:4,x:8,y:4,z:10};
 
-//Go ahead and start getting the large file ASAP and setting up objects and DOM
-//need to do this first to make adding event listners less of a headache
 createwordArray();
 createTilelist();
 createBoardspaces();
@@ -44,17 +42,10 @@ function createBoardspaces(){
         for (var j = 0; j <= 11; j++){
 
             d = document.createElement('div');
-            var space = new Object();
-
-            space.homeX = Math.floor(j*tileWidth);;
-            space.homeY = Math.floor(n*tileWidth);
-
-            space.letterVal = "";
-            space.locked = 0;
 
             //visual aspects
-            $(d).css("left",  space.homeX);
-            $(d).css("top",  space.homeY);
+            $(d).css("left",  Math.floor(j*tileWidth));
+            $(d).css("top",  Math.floor(n*tileWidth));
             $(d).addClass("onboardtextFormat");
             $(d).addClass("onboardvisFormat");
 
@@ -70,38 +61,30 @@ function createBoardspaces(){
             var ranVal = getRandomArbitrary(0, 100);
 
             if(ranVal < 60){
-                space.bonus = "none";
                 $(d).text("  ");
             }
 
             if((ranVal>60)&&(ranVal<70)){
-                 space.bonus = "TW";
                  $(d).text("TW");
                  $(d).addClass("tw");
             }
 
             if((ranVal>70)&&(ranVal<80)){
-                 space.bonus = "DW";
                  $(d).text("DW");
                  $(d).addClass("dw");                
             }
 
             if((ranVal>80)&&(ranVal<90)){
-                 space.bonus = "DL";
                  $(d).text("DL");
                  $(d).addClass("dl");
             }
 
             if((ranVal>90)&&(ranVal<100)){
-                 space.bonus = "TL";
                  $(d).text("TL");
                  $(d).addClass("tl");
             }
-
             //Push the look to the DOM
             $(d).appendTo($(".container"));
-            //Push the logical to memory
-            gameBoard.push(space);
         }            
 }
 //  
@@ -248,6 +231,9 @@ function scoreHandler(inplayList){
         return;
     }
     
+    console.log("Bad Play: STOP!!");
+    indicateWrong();
+    return;
 }
 
 
@@ -322,7 +308,6 @@ function handleSingletileplay(inplayList){
                 
         var wordLength = ((bottomVal - topVal)/boardxy);   
         sequence = sequence.then(function(){  
-            console.log("topVal: " + topVal + " bottomVal: " + bottomVal + " wLength: " + wordLength);
             return testColword(topVal, wordLength, inplayList);
         }).then(function(res){
                         
@@ -382,7 +367,7 @@ function handleColplay(inplayList){
     
     var topVal = gettopVal(startVal, inplayList);
     var wordLength = ((bottomVal - topVal)/boardxy);
-    //console.log("wordLengthValue is: " + wordLength);
+
     //begin to push characters on string
     testColword(topVal, wordLength, inplayList).then(function(res){
         mainScore = res;
@@ -453,9 +438,7 @@ function testColword(start, length, inplayList){
     var query = start;
     var testString = "";
     var result;
-    
-    console.log("bottom: " + (start+length*boardxy) + " wLength: " + length);
-    
+        
     for(var i = 0; i<=length; i++){
         query = start+i*boardxy; 
         result = $.grep(inplayList, function(e){ return e.iD == query; })[0];
@@ -765,21 +748,19 @@ function isaWord(testWord){
         console.log(data);
         if($.isEmptyObject(data)){
             console.log("NOT A WORD AJAX EMPTY: " + word);
-            isGood = false;
         }else{
             
             $($.parseJSON(JSON.stringify(data))).each(function() {
-                if((this.sourceDictionary === "ahd-legacy")&&(this.partOfSpeech != "abbreviation")){
-                   
+//                if((this.sourceDictionary === "ahd-legacy")&&(this.partOfSpeech != "abbreviation")){
+                if((this.partOfSpeech != "abbreviation")){  
                     console.log("IS A WORD AJAX: " + word);
                     isGood = true;
-                   
                    }
                 
-            });
-            
-            return isGood;    
+            });   
         }
+        
+        return isGood; 
     });    
 }
 function indicateWrong(){
@@ -938,7 +919,7 @@ $(".tileNatural").draggable({
 
 //When the "checkBtn" is clicked create a scoring object (list of played and locked tiles) to be passed to the scoreHandler 
 $( ".checkBtn" ).click(function() {
-    console.log("*****Start of Play*****")
+    console.log("**********START OF PLAY!**********")
     var scoringObject = [];
     var newtileFound = false;
     
@@ -973,7 +954,7 @@ $( ".checkBtn" ).click(function() {
     if(newtileFound){
         scoreHandler(scoringObject);
     }else{
-        console.log("no new tiles");
+        console.log("NO NEW TILES ARE ON BOARD!");
     }
     
     
