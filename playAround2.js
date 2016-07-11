@@ -322,8 +322,6 @@ function handleSingletileplay(inplayList){
         }
     }
         
-
-    
     if(leftVal!=rightVal){
         var wordLength = rightVal - leftVal;
         var res = testRowword(leftVal, wordLength, inplayList);
@@ -383,7 +381,7 @@ function handleColplay(inplayList){
                         totalScore = totalScore + mainScore + (goodperpPlay-1); 
                     }
                     
-                    console.log("New Total Score: " + totalScore)
+                    console.log("New Total Score: " + totalScore);
                 }else{
                     console.log("Some ROW Subword NOT A WORD!!");
                     indicateWrong();
@@ -460,7 +458,6 @@ function testperpendicularRows(inplayList){
 
     var playStatus = true;
     var sequence = Promise.resolve();
-    var testVal = 0;
         
     inplayList.forEach(function(w){
             if (w.fresh === true){
@@ -470,12 +467,10 @@ function testperpendicularRows(inplayList){
                 var wordLength = ((rightVal - leftVal));
                 if(wordLength!=0){
                     sequence = sequence.then(function(){
-                        testVal++;
+                        
                         return testRowword(leftVal, wordLength, inplayList);
                     }).then(function(res){
                         
-                        console.log("Returned Val: " + res);
-                        console.log("Test Val: " + testVal);
                         if(res&&playStatus){
                             console.log("SUB Word IS A WORD: Perpendicular Row!!");
                             playStatus+=res;
@@ -484,10 +479,8 @@ function testperpendicularRows(inplayList){
                             console.log("Bad Play: Perpendicular Row - STOP!!");   
                             playStatus = false;
                         }
-                        
                         return playStatus;
                     });
-                    
                 }
                 
                 
@@ -545,6 +538,8 @@ function handleRowplay(inplayList){
     var rightVal = getrightVal(startVal, inplayList);
     var finaltestRow = gaptestRow(rightVal, inplayList);
     
+     var mainScore =0;
+    
     if(finaltestRow == false){
         console.log("Bad Play Row: Gap - STOP!!");
         indicateWrong();
@@ -556,6 +551,7 @@ function handleRowplay(inplayList){
     
     //console.log("wordLengthValue is: " + wordLength);
     testRowword(leftVal, wordLength, inplayList).then(function(res){
+        mainScore = res;
         console.log("Returned Val: " + res);
         
         if(res){
@@ -563,8 +559,17 @@ function handleRowplay(inplayList){
             testperpendicularCols(inplayList).then(function(goodperpPlay){
                 console.log("goodperpColPlay: " + goodperpPlay);
                 if((goodperpPlay)||(goodperpPlay === undefined)){
-                //if(goodperpPlay){
+                
                     indicateRightandlock(); 
+                    
+                    if(goodperpPlay === undefined){
+                        totalScore = totalScore + mainScore;
+                    }else{
+                        totalScore = totalScore + mainScore + (goodperpPlay-1); 
+                    }
+                    
+                    console.log("New Total Score: " + totalScore);                  
+
                 }else{
                     console.log("Some COL Subword NOT A WORD!!");
                     indicateWrong();
@@ -641,61 +646,47 @@ function testRowword(start, length, inplayList){
 
 }
 
-var longFunction = function(topVal, wordLength, inplayList){
-    
+function testperpendicularCols(inplayList){  
+
     var playStatus = true;
-    console.log("Called longFunction with topval: " + topVal);
-    console.log("Word Length C: " + wordLength);
-    var promise = new Promise(function(resolve, reject){
-        
-        testColword(topVal, wordLength, inplayList).then(function(res){
-                //console.log(startVal);
-            if(res){
-                console.log("SUB Word IS A WORD: Perpendicular Col!!");
-            }else{
-
-                console.log("Bad Play: Perpendicular Col - STOP!!");  
-                playStatus = false;
-            }
-            
-            
-        });
-        
-        resolve(playStatus);
-    
-    });
-    
-    return promise;
-}
-
-function testperpendicularCols(inplayList){      
     var sequence = Promise.resolve();
-
-             
-        for (var w = 0; w < inplayList.length; w++){
-            if (inplayList[w].fresh === true){
-                startVal = inplayList[w].iD; 
+        
+    inplayList.forEach(function(w){
+            if (w.fresh === true){
+                startVal = w.iD;
                 var bottomVal = getbottomVal(startVal, inplayList);
                 var topVal = gettopVal(startVal, inplayList);
                 var wordLength = ((bottomVal - topVal)/boardxy);
                 
-                console.log("Word Length A: " + wordLength);
-                
                 if(wordLength!=0){
-                    console.log("I'm Here");
                     sequence = sequence.then(function(){
-                        console.log("TopVal B: " + topVal);
-                        console.log("Word Length B: " + wordLength);
-                        return longFunction(topVal, wordLength, inplayList);
-                    }).then(function(item){
-                            console.log("Returned Result: " + item);
-                        });
+                      
+                        return testColword(topVal, wordLength, inplayList);
+                    }).then(function(res){
+                        
+                        if(res&&playStatus){
+                            console.log("SUB Word IS A WORD: Perpendicular Col!!");
+                            playStatus+=res;
+                        }else{
+
+                            console.log("Bad Play: Perpendicular Col - STOP!!");   
+                            playStatus = false;
+                        }
+                        
+                        return playStatus;
+                    });
+                    
                 }
+                
+                
             }
-        }
-        console.log(sequence);
-        return sequence;
-       
+      
+        
+    });
+
+    
+//    console.log("playStatus resolved perpRows: " + playStatus);
+    return sequence;
 
 }
 function scoreRowword(start, length, inplayList){  
