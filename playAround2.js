@@ -234,7 +234,17 @@ function scoreHandler(inplayList){
     
     //A single tile has been played
     if((checkforPlay("col",inplayList)&&(checkforPlay("row", inplayList)))){
-        handleSingletileplay(inplayList);
+        handleSingletileplay(inplayList).then(function(goodsingPlay){
+
+            if((goodsingPlay)){
+                    indicateRightandlock(); 
+                    totalScore = totalScore + (goodsingPlay-1);
+                    console.log("New Total Score: " + totalScore);
+                }else{
+                    console.log("Some Single Tile Play NOT A WORD or BAD FORMATTING!!");
+                    indicateWrong();
+                } 
+        });
         return;
     }
     
@@ -298,51 +308,60 @@ function getstartvalY(inplayList){
 
 
 function handleSingletileplay(inplayList){
-    var startVal = getStartval(inplayList);
     
+    var startVal = getStartval(inplayList);
     var bottomVal = getbottomVal(startVal, inplayList);
     var topVal = gettopVal(startVal, inplayList); 
     var rightVal = getrightVal(startVal, inplayList);
     var leftVal = getleftVal(startVal, inplayList);
+    var sequence = Promise.resolve();
+    
+    var playStatus = true;
     
     if(bottomVal!=topVal){
-        
-        var wordLength = ((bottomVal - topVal)/boardxy);
-        var res = testColword(topVal, wordLength, inplayList);
-        
-        if(res === true){
-            console.log("SINGLE TILE UP DOWN A WORD!!");
-            indicateRightandlock(); 
                 
-        } else{
-                
-            console.log("SINGLE TILE UP DOWN NOT A WORD!!");
-            indicateWrong();
-            return;
-        }
+        var wordLength = ((bottomVal - topVal)/boardxy);   
+        sequence = sequence.then(function(){  
+            console.log("topVal: " + topVal + " bottomVal: " + bottomVal + " wLength: " + wordLength);
+            return testColword(topVal, wordLength, inplayList);
+        }).then(function(res){
+                        
+            if(res){
+                console.log("SINGLE TILE UP DOWN A WORD!!");
+                playStatus+=res;
+            }else{
+                console.log("Single Tile UP DOWN NOT A WORD - STOP!!");   
+                playStatus = false;
+            }
+            return playStatus;
+        });
     }
-        
+    
     if(leftVal!=rightVal){
-        var wordLength = rightVal - leftVal;
-        var res = testRowword(leftVal, wordLength, inplayList);
         
-        if(res === true){
-            console.log("SINGLE TILE LEFT RIGHT A WORD!!");
-            indicateRightandlock();  
-        }else{
-            console.log("SINGLE TILE LEFT RIGHT NOT A WORD!!");
-            indicateWrong(); 
-            return;
-        }
-        
+        var wordLength2 = rightVal - leftVal;  
+        sequence = sequence.then(function(prevResult){ 
+            
+            if(prevResult != false){
+                return testRowword(leftVal, wordLength2, inplayList);
+            }else{
+                return false;
+            }
+            
+        }).then(function(res){
+                        
+            if(res){
+                console.log("SINGLE TILE LEFT RIGHT A WORD!!"); 
+                playStatus+=res;
+            }else{
+                console.log("Single Tile LEFT RIGHT NOT A WORD (OR UP DOWN - Check prev output) - STOP!!");   
+                playStatus = false;
+            }
+            return (playStatus);
+        });
     }
 
-        
-    if((leftVal == rightVal)&&(bottomVal == topVal)){
-        console.log("BAD PLAY SINGLE TILE!!");
-        indicateWrong();
-        return;
-    }
+    return sequence;
     
 }
 
@@ -435,6 +454,7 @@ function testColword(start, length, inplayList){
     var testString = "";
     var result;
     
+    console.log("bottom: " + (start+length*boardxy) + " wLength: " + length);
     
     for(var i = 0; i<=length; i++){
         query = start+i*boardxy; 
@@ -467,7 +487,6 @@ function testperpendicularRows(inplayList){
                 var wordLength = ((rightVal - leftVal));
                 if(wordLength!=0){
                     sequence = sequence.then(function(){
-                        
                         return testRowword(leftVal, wordLength, inplayList);
                     }).then(function(res){
                         
@@ -735,6 +754,8 @@ function isaWord(testWord){
     var word = testWord;
     var theRest = "/definitions?limit=200&includeRelated=true&useCanonical=false&includeTags=false&api_key=005e228be6690fb08500a0521b4058f1441f25d7df48d1930";
     var finalAddress = baseuri + word + theRest;
+    
+    var isGood = false;
    
     return $.getJSON( finalAddress, function( data ) {
      
@@ -743,52 +764,23 @@ function isaWord(testWord){
         //console.log(data);
         console.log(data);
         if($.isEmptyObject(data)){
-            console.log("NOT A WORD AJAX: " + word);
-            return false;
+            console.log("NOT A WORD AJAX EMPTY: " + word);
+            isGood = false;
         }else{
-            console.log("IS A WORD AJAX: " + word);
-            return true;
+            
+            $($.parseJSON(JSON.stringify(data))).each(function() {
+                if((this.sourceDictionary === "ahd-legacy")&&(this.partOfSpeech != "abbreviation")){
+                   
+                    console.log("IS A WORD AJAX: " + word);
+                    isGood = true;
+                   
+                   }
+                
+            });
+            
+            return isGood;    
         }
-    });
-    
-    
-//    $.ajax({
-//        dataType: "json",
-//        url: url,
-//        data: data,
-//        success: success
-//    });
-    
-    
-//    var baseuri = "http://www.dictionaryapi.com/api/v1/references/collegiate/xml/"; 
-//    var word = testWord;
-//    var theRest = "?key=66692fc8-763e-4328-9575-f6ac1888c2d5";
-//    var finalAddress = baseuri + word + theRest;
-//    $.get(finalAddress, function(data){
-//        
-//        005e228be6690fb08500a0521b4058f1441f25d7df48d1930
-//        http://api.wordnik.com:80/v4/word.json/tresd?useCanonical=false&includeSuggestions=false&api_key=
-//        
-//        
-//        var json = $.xml2json(data);
-//        console.log(json);
-//        console.log(json["#document"].entry_list.suggestion);
-//        if(json["#document"].entry_list.suggestion === undefined){
-//            console.log("GOOD WORD REST: " + testWord);
-//            return true;
-//        }else{
-//            console.log("BAD WORD REST: " + testWord);
-//            return false;
-//        }
-//        
-//
-//    }, 'xml')
-    
-//  $.getJSON('http://www.dictionaryapi.com/api/v1/references/collegiate/xml/test?key=66692fc8-763e-4328-9575-f6ac1888c2d5', function(data){
-//    console.log(data);
-//  });
-    
-    
+    });    
 }
 function indicateWrong(){
     $(".tileNatural.onboardFresh").addClass("tileWrong");
